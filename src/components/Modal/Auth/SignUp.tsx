@@ -2,7 +2,8 @@ import { AuthModalState } from '@/atoms/authModalAtom';
 import { Button, Flex, Input, Text } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
-
+import {useCreateUserWithEmailAndPassword} from 'react-firebase-hooks/auth'
+import {auth} from '../../../firebase/clientApp'
 
 const SignUp:React.FC = () => {
     
@@ -11,15 +12,32 @@ const SignUp:React.FC = () => {
         password: '',
         confirmPassword:''
     })
-
+    const [error, setError] = useState('');
     const setAuthModalState = useSetRecoilState(AuthModalState)
-    const onSubmit = () => { };
+    const onSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+        event.preventDefault(); 
+        if(error) setError('');
+        if(signUpForm.password !== signUpForm.confirmPassword){
+            setError('Passwords donot match')
+            return;
+        }
+        createUserWithEmailAndPassword(signUpForm.email, signUpForm.password);
+    };
     const onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setSignUpForm((prev: any)=>({
             ...prev,
             [event.target.name]: event.target.value,
         }))
      };
+
+     const [
+        createUserWithEmailAndPassword,
+        user,
+        loading,
+        userError,
+      ] = useCreateUserWithEmailAndPassword(auth);
+
+
     return (
         <form onSubmit={onSubmit}>
             <Input
@@ -90,13 +108,14 @@ const SignUp:React.FC = () => {
                 bg='gray.50'
                 
                 />
-            <Button width='100%' height='36px' type='submit' mt={2} mb={2}>Sign Up</Button>
+            {error && <Text fontSize='10pt' align='center' color='red.600' fontWeight={700}>{error}</Text>}
+            <Button width='100%' height='36px' type='submit' mt={2} mb={2} isLoading={loading}>Sign Up</Button>
             <Flex fontSize='9pt' justifyContent='center'>
                 <Text mr={1}> Already a redditor?</Text>
                 <Text color='blue.500' fontWeight='700' cursor='pointer' onClick={()=>{
                     setAuthModalState((prev: any)=>({
                         ...prev,
-                        view: 'signup'
+                        view: 'login'
                     }))
                 }}> LOG IN</Text>
                 
