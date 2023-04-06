@@ -4,8 +4,15 @@ import React, { useState } from 'react';
 import { useSetRecoilState } from 'recoil';
 import {useCreateUserWithEmailAndPassword} from 'react-firebase-hooks/auth'
 import {auth} from '../../../firebase/clientApp'
+import { FIREBASE_ERRORS } from '@/firebase/errors';
 
 const SignUp:React.FC = () => {
+    const [
+       createUserWithEmailAndPassword,
+       user,
+       loading,
+       userError,
+     ] = useCreateUserWithEmailAndPassword(auth);
     
     const [signUpForm, setSignUpForm] = useState({
         email: '',
@@ -30,12 +37,6 @@ const SignUp:React.FC = () => {
         }))
      };
 
-     const [
-        createUserWithEmailAndPassword,
-        user,
-        loading,
-        userError,
-      ] = useCreateUserWithEmailAndPassword(auth);
 
 
     return (
@@ -108,7 +109,7 @@ const SignUp:React.FC = () => {
                 bg='gray.50'
                 
                 />
-            {error && <Text fontSize='10pt' align='center' color='red.600' fontWeight={700}>{error}</Text>}
+            {(error || userError) && <Text fontSize='10pt' align='center' color='red.600' fontWeight={700}>{error || FIREBASE_ERRORS[userError?.message as keyof typeof FIREBASE_ERRORS]}</Text>}
             <Button width='100%' height='36px' type='submit' mt={2} mb={2} isLoading={loading}>Sign Up</Button>
             <Flex fontSize='9pt' justifyContent='center'>
                 <Text mr={1}> Already a redditor?</Text>
