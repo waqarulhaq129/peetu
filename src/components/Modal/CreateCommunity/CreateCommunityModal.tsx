@@ -1,6 +1,7 @@
 import { auth, firestore } from '@/firebase/clientApp';
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalCloseButton, ModalBody, ModalFooter, Button, Box, Text, Input, Stack, Checkbox, Flex, Icon } from '@chakra-ui/react';
-import { doc, getDoc, serverTimestamp, setDoc } from 'firebase/firestore';
+import { Transaction } from '@google-cloud/firestore';
+import { doc, getDoc, runTransaction, serverTimestamp, setDoc } from 'firebase/firestore';
 import { availableParallelism } from 'os';
 import React, { useState } from 'react';
 import { useAuthState } from 'react-firebase-hooks/auth';
@@ -46,19 +47,32 @@ const CreateCommunityModal: React.FC<CreateCommunityModalProps> = ({ open, handl
 
         try {
             const communityDocRef = doc(firestore, 'communities', communityName);
-            const communityDoc= await getDoc(communityDocRef);
-            if (communityDoc.exists()){
-                throw new Error(`Sorry, r/${communityName} is already Taken, Try another`);
-                
-            }
-    
-            await setDoc(communityDocRef ,{
-                creatorId: user?.uid,
-                createdAt: serverTimestamp(),
-                numberOfMembers:1,
-                privacyType: checked,
-    
-            })
+            
+            await runTransaction(firestore, async(transaction) =>{
+
+                const communityDoc= await transaction.get(communityDocRef);
+                if (communityDoc.exists()){
+                    throw new Error(`Sorry, r/${communityName} is already Taken, Try another`);
+                    
+                }
+        
+                transaction.set(communityDocRef ,{
+                    creatorId: user?.uid,
+                    createdAt: serverTimestamp(),
+                    numberOfMembers:1,
+                    privacyType: checked,
+        
+                })
+
+                transaction.set( 
+                    doc(firestore, `users/${user?.uid}/communitySnippets`, communityName),{
+                        communityId: communityName,
+                        isModerator: true,
+                    }
+                )
+
+
+            } )
             
         } catch (error: any) {
             console.log('handleCreateCommunity Error', error);
