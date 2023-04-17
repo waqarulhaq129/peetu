@@ -86,13 +86,13 @@ const NewPostForm:React.FC<NewPostFormProps> = ({user}) => {
                 });
 
             } 
+            router.back();
             
         } catch (error: any) {
             console.log('handleCreatePost Error' , error.message)
             setError(true);
         }
         setLoading(false);
-        router.back();
     };
 
 

@@ -10,7 +10,7 @@ export type Post={
     body:string;
     numberOfComments: number;
     voteStatus: number;
-    imageURL?:string;
+    ImageURL?:string;
     communityImageURL?:string;  
     createdAt: Timestamp;
 }
