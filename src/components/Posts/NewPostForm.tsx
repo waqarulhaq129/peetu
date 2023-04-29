@@ -12,6 +12,7 @@ import { useRouter } from 'next/router';
 import { addDoc, collection, serverTimestamp , Timestamp, updateDoc} from 'firebase/firestore';
 import { firestore, storage } from '@/firebase/clientApp';
 import { getDownloadURL, ref, uploadString } from 'firebase/storage';
+import useSelectFile from '@/hooks/useSelectFile';
 
 
 
@@ -58,8 +59,8 @@ const NewPostForm:React.FC<NewPostFormProps> = ({user}) => {
     body: '',
      });
 
-     const [selectedFile, setSelectedFile] = useState<string>();
-
+    
+     const {selectedFile, setSelectedFile, onSelectFile} = useSelectFile();
      const handleCreatePost = async () => {
         const {communityId} = router.query;
         const newPost:Post ={
@@ -71,7 +72,7 @@ const NewPostForm:React.FC<NewPostFormProps> = ({user}) => {
             numberOfComments: 0,
             voteStatus: 0,
             createdAt: serverTimestamp() as Timestamp,
-            id: ''
+            
         };
         setLoading(true)
         try {
@@ -96,18 +97,7 @@ const NewPostForm:React.FC<NewPostFormProps> = ({user}) => {
     };
 
 
-        const onSelectImage = (event: React.ChangeEvent<HTMLInputElement>) => {
-            const reader = new FileReader();
-            if(event.target.files?.[0]){
-                reader.readAsDataURL(event.target.files[0])
-            }
-            
-            reader.onload =(readerEvent)=>{
-                if (readerEvent.target?.result){
-                    setSelectedFile(readerEvent.target.result as string)
-                }
-            }
-        };
+        
         const onTextChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
             const {target:{name, value}} = event;
 
@@ -135,7 +125,7 @@ const NewPostForm:React.FC<NewPostFormProps> = ({user}) => {
                 <ImageUpload selectedFile={selectedFile}
                  setSelectedFile={setSelectedFile}
                  setSelectedTab={setSelectedTab} 
-                 onSelectImage={onSelectImage} />}
+                 onSelectImage={onSelectFile} />}
             
             </Flex>
             {error && (
